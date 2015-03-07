@@ -3,5 +3,14 @@ package backend
 import ()
 
 type Context struct {
-	Name string
+	DB *Database
+}
+
+func NewContext(config Config) *Context {
+	c := &Context{}
+
+	// Database
+	c.DB = NewDatabase(config.DBDriver, config.DBDataSource)
+
+	return c
 }
