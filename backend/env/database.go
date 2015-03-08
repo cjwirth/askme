@@ -1,4 +1,4 @@
-package backend
+package env
 
 import (
 	"github.com/jmoiron/sqlx"

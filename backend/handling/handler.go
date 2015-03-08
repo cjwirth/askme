@@ -1,15 +1,16 @@
-package backend
+package handling
 
 import (
+	"../env"
 	"net/http"
 )
 
 // Handler is just a function that responds to http requests with the context also passed in
-type Handler func(http.ResponseWriter, *http.Request, *Context)
+type Handler func(http.ResponseWriter, *http.Request, *env.Context)
 
 // Middleware is a function that acts upon an http request, handles it, and calls the next handler
 // If a middleware can also stop the chain of events by not calling the next handler
-type Middleware func(http.ResponseWriter, *http.Request, *Context, Handler)
+type Middleware func(http.ResponseWriter, *http.Request, *env.Context, Handler)
 
 // node is a step in the middleware list.
 type node struct {
@@ -18,7 +19,7 @@ type node struct {
 }
 
 // emptyNode represents the end of the middleware list, and does nothing (except stops the request...)
-var emptyNode = &node{func(w http.ResponseWriter, r *http.Request, c *Context, next Handler) {}, &node{}}
+var emptyNode = &node{func(w http.ResponseWriter, r *http.Request, c *env.Context, next Handler) {}, &node{}}
 
 // add appends the given middlewares to the list
 // It will call itself recursively to get it to the end
@@ -50,21 +51,21 @@ func (n node) copy() *node {
 }
 
 // ServeHTTP is called when a request comes in. The node calls its middleware, and passes in the next step
-func (n node) ServeHTTP(w http.ResponseWriter, r *http.Request, c *Context) {
+func (n node) ServeHTTP(w http.ResponseWriter, r *http.Request, c *env.Context) {
 	n.middleware(w, r, c, n.next.ServeHTTP)
 }
 
 // MiddlewareChain is an http.Handler that contains a list of middlewares
 // Each middleware function is called in succession until at last the handler is called (or a middleware cancels it)
 type MiddlewareChain struct {
-	Context *Context
+	Context *env.Context
 	head    *node
 }
 
 // NewChain returns a new MiddlewareChain with no actual middleware attached
-func NewChain(c *Context) *MiddlewareChain {
+func NewChain(c *env.Context) *MiddlewareChain {
 	// Dummy middleware. Only exists to kickstart the thing and deal with no null pointer errors
-	startingMiddleware := func(w http.ResponseWriter, r *http.Request, c *Context, next Handler) {
+	startingMiddleware := func(w http.ResponseWriter, r *http.Request, c *env.Context, next Handler) {
 		next(w, r, c)
 	}
 	return &MiddlewareChain{c, &node{startingMiddleware, emptyNode}}
@@ -92,7 +93,7 @@ func (c MiddlewareChain) Branch(middlewares ...Middleware) *MiddlewareChain {
 // Then returns a copy of the chain it was called upon, with the handler appended to the end
 // This method is meant to be used to be the final call on chains before sending them to the router, or wherever.
 func (c MiddlewareChain) Then(h Handler) *MiddlewareChain {
-	chain := c.Branch(func(w http.ResponseWriter, r *http.Request, c *Context, next Handler) {
+	chain := c.Branch(func(w http.ResponseWriter, r *http.Request, c *env.Context, next Handler) {
 		h(w, r, c)
 		next(w, r, c)
 	})

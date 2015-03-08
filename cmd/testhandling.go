@@ -5,16 +5,17 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"../backend"
+	"../backend/env"
+	"../backend/handling"
 )
 
 // Here begin tests
 
 func main() {
-	config := backend.Config{
+	config := env.Config{
 		DBDriver:     "sqlite3",
 		DBDataSource: "file:develop.db",
 	}
-	r := backend.Router(config)
+	r := handling.Router(config)
 	http.ListenAndServe(":8000", r)
 }

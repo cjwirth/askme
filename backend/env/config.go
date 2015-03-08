@@ -1,4 +1,4 @@
-package backend
+package env
 
 type Config struct {
 

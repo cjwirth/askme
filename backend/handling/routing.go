@@ -1,18 +1,20 @@
-package backend
+package handling
 
 import (
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"../env"
 )
 
-func Router(config Config) http.Handler {
+func Router(config env.Config) http.Handler {
 	// Actual router
 	router := mux.NewRouter()
 
 	// Dependencies for handlers
-	context := NewContext(config)
+	context := env.NewContext(config)
 	common := NewChain(context)
 	common.Add(LogRequest)
 
@@ -22,7 +24,7 @@ func Router(config Config) http.Handler {
 	return router
 }
 
-func Root(w http.ResponseWriter, r *http.Request, c *Context) {
+func Root(w http.ResponseWriter, r *http.Request, c *env.Context) {
 
 	fmt.Println("Root Handler")
 	w.WriteHeader(200)
