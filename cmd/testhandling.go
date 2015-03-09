@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 
 	"../backend/env"
 	"../backend/handling"
@@ -13,8 +13,8 @@ import (
 
 func main() {
 	config := env.Config{
-		DBDriver:     "sqlite3",
-		DBDataSource: "file:develop.db",
+		DBDriver:     "postgres",
+		DBDataSource: "user=askme dbname=askme_dev",
 	}
 	r := handling.Router(config)
 	http.ListenAndServe(":8000", r)

@@ -20,6 +20,7 @@ func Router(config env.Config) http.Handler {
 
 	// Set up routing
 	router.Handle("/", common.Then(Root))
+	router.Handle("/users", common.Then(CreateUser)).Methods("POST")
 
 	return router
 }
