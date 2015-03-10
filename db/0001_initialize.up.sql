@@ -2,8 +2,8 @@
 
 create table if not exists users (
     id serial primary key,
-    name text,
-    email text,
+    name text not null unique,
+    email text not null unique,
     password_hash text,
     created_at timestamp default current_timestamp 
 );

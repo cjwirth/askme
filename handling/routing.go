@@ -16,7 +16,7 @@ func Router(config env.Config) http.Handler {
 	// Dependencies for handlers
 	context := env.NewContext(config)
 	common := NewChain(context)
-	common.Add(LogRequest)
+	common.Add(InitContext, LogRequest)
 
 	// Set up routing
 	router.Handle("/", common.Then(Root))

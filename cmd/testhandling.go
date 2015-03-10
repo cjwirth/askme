@@ -5,8 +5,8 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"../backend/env"
-	"../backend/handling"
+	"../env"
+	"../handling"
 )
 
 // Here begin tests

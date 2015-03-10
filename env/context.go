@@ -1,9 +1,13 @@
 package env
 
-import ()
+import (
+	"encoding/json"
+)
 
 type Context struct {
-	DB *Database
+	DB      *Database
+	Render  Renderer
+	Decoder *json.Decoder
 }
 
 func NewContext(config Config) *Context {
@@ -11,6 +15,7 @@ func NewContext(config Config) *Context {
 
 	// Database
 	c.DB = NewDatabase(config.DBDriver, config.DBDataSource)
+	c.Render = DefaultRenderer()
 
 	return c
 }
