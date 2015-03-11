@@ -1,4 +1,4 @@
-package env
+package server
 
 type Config struct {
 

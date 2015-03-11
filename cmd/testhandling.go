@@ -1,21 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	_ "github.com/lib/pq"
 
-	"../env"
-	"../handling"
+	"askme/server"
+	"askme/server/handlers"
 )
 
 // Here begin tests
 
 func main() {
-	config := env.Config{
+	config := server.Config{
 		DBDriver:     "postgres",
 		DBDataSource: "user=askme dbname=askme_dev",
 	}
-	r := handling.Router(config)
-	http.ListenAndServe(":8000", r)
+	r := handlers.Router(config)
+	fmt.Println(http.ListenAndServe(":8000", r))
 }

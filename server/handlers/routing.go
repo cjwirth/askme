@@ -1,4 +1,4 @@
-package handling
+package handlers
 
 import (
 	"fmt"
@@ -6,16 +6,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"../env"
+	"askme/server"
 )
 
-func Router(config env.Config) http.Handler {
+func Router(config server.Config) http.Handler {
 	// Actual router
 	router := mux.NewRouter()
 
 	// Dependencies for handlers
-	context := env.NewContext(config)
-	common := NewChain(context)
+	context := server.NewContext(config)
+	common := server.NewChain(context)
 	common.Add(InitContext, LogRequest)
 
 	// Set up routing
@@ -25,7 +25,7 @@ func Router(config env.Config) http.Handler {
 	return router
 }
 
-func Root(w http.ResponseWriter, r *http.Request, c *env.Context) {
+func Root(w http.ResponseWriter, r *http.Request, c *server.Context) {
 
 	fmt.Println("Root Handler")
 	w.WriteHeader(200)
