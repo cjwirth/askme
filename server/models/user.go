@@ -65,5 +65,5 @@ func validateUser(u User) []error {
 func insertUser(db *sqlx.DB, name string, email string, password string) (*User, error) {
 	user := &User{}
 	err := db.QueryRowx("INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *", name, email, password).StructScan(user)
-	return user, err
+	return user, dbError(err)
 }

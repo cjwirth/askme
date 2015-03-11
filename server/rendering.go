@@ -5,29 +5,31 @@ import (
 	"net/http"
 )
 
-// Default error implementation, used for rendering in json
-type Error struct {
-	Code    int    `json:"code"`
+type ServerError struct {
 	Message string `json:"message"`
 }
 
-func NewError(code int, message string) Error {
-	return Error{Code: code, Message: message}
+func makeErrors(errors ...error) []ServerError {
+	serverErrors := []ServerError{}
+	for _, err := range errors {
+		serverErrors = append(serverErrors, ServerError{Message: err.Error()})
+	}
+	return serverErrors
 }
 
-type Meta struct {
-	Code   int     `json:"code"`
-	Errors []Error `json:"errors,omitempty"`
+type meta struct {
+	Code   int           `json:"code"`
+	Errors []ServerError `json:"errors,omitempty"`
 }
 
-type Result struct {
-	Meta Meta        `json:"meta"`
+type result struct {
+	Meta meta        `json:"meta"`
 	Body interface{} `json:"body,omitempty"`
 }
 
 type Renderer interface {
 	Result(w http.ResponseWriter, code int, result interface{})
-	Error(w http.ResponseWriter, code int, errors ...Error)
+	Error(w http.ResponseWriter, code int, errors ...error)
 }
 
 // Default renderer type
@@ -37,13 +39,13 @@ func DefaultRenderer() Renderer {
 	return jsonRenderer{}
 }
 
-func (r jsonRenderer) Result(w http.ResponseWriter, code int, result interface{}) {
-	obj := Result{
-		Meta: Meta{
+func (r jsonRenderer) Result(w http.ResponseWriter, code int, payload interface{}) {
+	obj := result{
+		Meta: meta{
 			Code:   code,
 			Errors: nil,
 		},
-		Body: result,
+		Body: payload,
 	}
 
 	bytes, err := json.Marshal(obj)
@@ -55,11 +57,11 @@ func (r jsonRenderer) Result(w http.ResponseWriter, code int, result interface{}
 	}
 }
 
-func (r jsonRenderer) Error(w http.ResponseWriter, code int, errors ...Error) {
-	result := Result{
-		Meta: Meta{
+func (r jsonRenderer) Error(w http.ResponseWriter, code int, errors ...error) {
+	result := result{
+		Meta: meta{
 			Code:   code,
-			Errors: errors,
+			Errors: makeErrors(errors...),
 		},
 	}
 
@@ -79,8 +81,6 @@ func renderServerError(w http.ResponseWriter) {
 			"code": 500,
 			"errors": [
 				{
-					"domain": "RenderError",
-					"code": 500,
 					"message": "Failed to generate JSON"
 				}
 			]
