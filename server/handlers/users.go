@@ -15,6 +15,18 @@ type UserParam struct {
 	Password string `json:"password"`
 }
 
+func GetUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
+	userId := c.PathParams["id"]
+
+	user, errs := models.GetUserById(c.DB.DB, userId)
+
+	if len(errs) > 0 {
+		c.Render.Error(w, http.StatusBadRequest, errs...)
+	} else {
+		c.Render.Result(w, http.StatusOK, user)
+	}
+}
+
 // CreateUser is an http endpoint handler
 // Path: POST /user
 // Param: HTTP Body is a UserParam in JSON format

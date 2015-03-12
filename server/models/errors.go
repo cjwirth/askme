@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"log"
 
 	"github.com/lib/pq"
 )
@@ -29,6 +30,8 @@ func dbError(err error) error {
 		}
 
 	}
+
+	log.Println("Unknown database error: " + err.Error())
 
 	// Some sort of DB errror happened, but we don't know what
 	return errors.New("Database error occurred")

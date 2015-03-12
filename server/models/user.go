@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -15,6 +16,17 @@ type User struct {
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 }
 
+func GetUserById(db *sqlx.DB, id string) (*User, []error) {
+	errs := []error{}
+	user, err := getUserById(db, id)
+	if err != nil {
+		errs = append(errs, err)
+	}
+	return user, errs
+}
+
+// InsertUser inserts a user into the database.
+// Returns errors that occur -- validation and data errors
 func InsertUser(db *sqlx.DB, name string, email string, password string) (*User, []error) {
 	u := User{}
 	u.Name = name
@@ -61,6 +73,15 @@ func validateUser(u User) []error {
 //
 // Data Access Methods (no real business logic or validation
 //
+
+func getUserById(db *sqlx.DB, id string) (*User, error) {
+	user := &User{}
+	err := db.QueryRowx("SELECT * FROM users WHERE id = $1", id).StructScan(user)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return user, dbError(err)
+}
 
 func insertUser(db *sqlx.DB, name string, email string, password string) (*User, error) {
 	user := &User{}

@@ -21,7 +21,7 @@ func Router(config server.Config) http.Handler {
 	// Set up routing
 	router.Handle("/", common.Then(Root))
 	router.Handle("/users", common.Then(CreateUser)).Methods("POST")
-
+	router.Handle("/users/{id:[0-9]+}", common.Then(GetUser)).Methods("GET")
 	return router
 }
 

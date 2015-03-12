@@ -8,6 +8,8 @@ type Context struct {
 	DB      *Database
 	Render  Renderer
 	Decoder *json.Decoder
+
+	PathParams map[string]string
 }
 
 func NewContext(config Config) *Context {
