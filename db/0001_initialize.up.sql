@@ -11,8 +11,8 @@ create table if not exists users (
 create table if not exists questions (
     id serial primary key,
     author_id integer,
-    title text,
-    question text,
+    title text not null,
+    question text not null,
     created_at timestamp default current_timestamp,
     foreign key (author_id) references users (id)
 );

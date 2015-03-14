@@ -2,6 +2,8 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
+	"net/http"
 )
 
 type Context struct {
@@ -21,4 +23,12 @@ func NewContext(config Config) *Context {
 	c.Render = DefaultRenderer()
 
 	return c
+}
+
+func (c *Context) MustDecodeBody(w http.ResponseWriter, v interface{}) bool {
+	if err := c.Decoder.Decode(&v); err != nil {
+		c.Render.BadRequest(w, errors.New("Could not decode input"))
+		return false
+	}
+	return true
 }

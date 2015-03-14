@@ -63,10 +63,10 @@ func ValidateUser(u User) error {
 		err.AddReason("Name must not be empty.")
 	}
 	if len(u.Email) == 0 {
-		err.AddReason("Email must not be empty")
+		err.AddReason("Email must not be empty.")
 	}
 	if len(u.PasswordHash) == 0 {
-		err.AddReason("Password must not be empty")
+		err.AddReason("Password must not be empty.")
 	}
 
 	if len(err.Reasons) > 0 {
@@ -76,9 +76,8 @@ func ValidateUser(u User) error {
 	}
 }
 
-//
+//------------------------------------------------------------------------------
 // Private Methods
-//
 
 func hashPassword(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -93,33 +92,33 @@ func passwordIsCorrect(hash string, password string) bool {
 }
 
 //
-// Data Access Methods (no real business logic or validation
+// Data Access Methods
 //
 
 func getUserById(db *sqlx.DB, id int) (*User, error) {
-	user := &User{}
-	err := db.QueryRowx("SELECT * FROM users WHERE id = $1", id).StructScan(user)
+	var user User
+	err := db.QueryRowx("SELECT * FROM users WHERE id = $1", id).StructScan(&user)
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}
-	return user, dbError(err)
+	return &user, dbError(err)
 }
 
 func getUserByName(db *sqlx.DB, name string) (*User, error) {
-	user := &User{}
-	err := db.QueryRowx("SELECT * FROM users WHERE name = $1", name).StructScan(user)
+	var user User
+	err := db.QueryRowx("SELECT * FROM users WHERE name = $1", name).StructScan(&user)
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}
-	return user, dbError(err)
+	return &user, dbError(err)
 }
 
 func insertUser(db *sqlx.DB, name string, email string, password string) (*User, error) {
-	user := &User{}
-	err := db.QueryRowx("INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *", name, email, password).StructScan(user)
+	var user User
+	err := db.QueryRowx("INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *", name, email, password).StructScan(&user)
 	if dbErr := dbError(err); dbErr != nil {
 		return nil, dbErr
 	} else {
-		return user, nil
+		return &user, nil
 	}
 }

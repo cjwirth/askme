@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -47,8 +46,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
 // Param: HTTP Body is a UserParam in JSON format
 func CreateUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
 	var u UserParam
-	if err := c.Decoder.Decode(&u); err != nil {
-		c.Render.BadRequest(w, errors.New("Could not decode inputn"))
+	if c.MustDecodeBody(w, &u) == false {
 		return
 	}
 
