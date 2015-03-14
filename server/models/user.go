@@ -15,8 +15,17 @@ type User struct {
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 }
 
-func GetUserById(db *sqlx.DB, id string) *User {
+func (u *User) CheckPassword(password string) bool {
+	return passwordIsCorrect(u.PasswordHash, password)
+}
+
+func GetUserById(db *sqlx.DB, id int) *User {
 	user, _ := getUserById(db, id)
+	return user
+}
+
+func GetUserByName(db *sqlx.DB, name string) *User {
+	user, _ := getUserByName(db, name)
 	return user
 }
 
@@ -28,7 +37,7 @@ func InsertUser(db *sqlx.DB, name string, email string, password string) (*User,
 	u.Email = email
 	u.PasswordHash = password
 
-	hashed, vErr := bcrypt.GenerateFromPassword([]byte(password), 10)
+	hashed, vErr := hashPassword(password)
 	if vErr != nil {
 		err := NewValidationError()
 		err.AddReason("Password has bad format")
@@ -39,7 +48,7 @@ func InsertUser(db *sqlx.DB, name string, email string, password string) (*User,
 		return nil, err
 	}
 
-	user, err := insertUser(db, name, email, string(hashed))
+	user, err := insertUser(db, name, email, hashed)
 	return user, err
 
 }
@@ -68,12 +77,37 @@ func ValidateUser(u User) error {
 }
 
 //
+// Private Methods
+//
+
+func hashPassword(password string) (string, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	return string(hashed), err
+}
+
+func passwordIsCorrect(hash string, password string) bool {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		return false
+	}
+	return true
+}
+
+//
 // Data Access Methods (no real business logic or validation
 //
 
-func getUserById(db *sqlx.DB, id string) (*User, error) {
+func getUserById(db *sqlx.DB, id int) (*User, error) {
 	user := &User{}
 	err := db.QueryRowx("SELECT * FROM users WHERE id = $1", id).StructScan(user)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	}
+	return user, dbError(err)
+}
+
+func getUserByName(db *sqlx.DB, name string) (*User, error) {
+	user := &User{}
+	err := db.QueryRowx("SELECT * FROM users WHERE name = $1", name).StructScan(user)
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}

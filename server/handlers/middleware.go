@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -14,6 +15,20 @@ import (
 func InitContext(w http.ResponseWriter, r *http.Request, c *server.Context, next server.Handler) {
 	c.Decoder = json.NewDecoder(r.Body)
 	c.PathParams = mux.Vars(r)
+	next(w, r, c)
+}
+
+func RestoreSession(w http.ResponseWriter, r *http.Request, c *server.Context, next server.Handler) {
+	session := server.FetchSession(r)
+	c.Session = session
+	next(w, r, c)
+}
+
+func RequireLogin(w http.ResponseWriter, r *http.Request, c *server.Context, next server.Handler) {
+	if c.Session.UserId == 0 {
+		c.Render.Error(w, http.StatusForbidden, errors.New("Forbidden"))
+		return
+	}
 	next(w, r, c)
 }
 

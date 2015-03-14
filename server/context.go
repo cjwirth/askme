@@ -8,6 +8,7 @@ type Context struct {
 	DB      *Database
 	Render  Renderer
 	Decoder *json.Decoder
+	Session *Session
 
 	PathParams map[string]string
 }

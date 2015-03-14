@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"askme/server"
 	"askme/server/models"
@@ -15,8 +16,23 @@ type UserParam struct {
 	Password string `json:"password"`
 }
 
+func GetUserMe(w http.ResponseWriter, r *http.Request, c *server.Context) {
+	id := c.Session.UserId
+	user := models.GetUserById(c.DB.DB, id)
+	if user != nil {
+		c.Render.ResultOK(w, user)
+	} else {
+		c.Render.NotFound(w)
+	}
+}
+
 func GetUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
-	userId := c.PathParams["id"]
+	id := c.PathParams["id"]
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		c.Render.NotFound(w)
+		return
+	}
 
 	user := models.GetUserById(c.DB.DB, userId)
 	if user != nil {
