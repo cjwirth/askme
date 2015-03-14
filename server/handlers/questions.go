@@ -13,6 +13,19 @@ type QuestionParam struct {
 	Question string `json:"question"`
 }
 
+func QueryQuestions(w http.ResponseWriter, r *http.Request, c *server.Context) {
+	authorId, _ := strconv.Atoi(r.FormValue("author_id"))
+	query := r.FormValue("query")
+	offset, _ := strconv.Atoi(r.FormValue("offset"))
+
+	qs, err := models.QueryQuestions(c.DB.DB, authorId, query, offset)
+	if err != nil {
+		c.Render.ServerError(w, err)
+	} else {
+		c.Render.ResultOK(w, qs)
+	}
+}
+
 func GetQuestion(w http.ResponseWriter, r *http.Request, c *server.Context) {
 	id := c.PathParams["id"]
 	questionId, err := strconv.Atoi(id)

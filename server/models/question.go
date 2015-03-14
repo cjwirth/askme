@@ -2,9 +2,11 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	sq "github.com/lann/squirrel"
 )
 
 type Question struct {
@@ -13,6 +15,34 @@ type Question struct {
 	Title     string    `db:"title" json:"title"`
 	Question  string    `db:"question" json:"question"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+
+func QueryQuestions(db *sqlx.DB, authorId int, query string, offset int) ([]Question, error) {
+	qs := []Question{}
+	qry := sq.Select("*").From("questions")
+
+	if authorId != 0 {
+		qry = qry.Where("author_id = ?", authorId)
+	}
+	if query != "" {
+		word := fmt.Sprint("%", query, "%")
+		qry = qry.Where("(title LIKE ? OR question LIKE ?)", word, word)
+	}
+	if offset > 0 {
+		qry = qry.Offset(uint64(offset))
+	}
+
+	qry = qry.OrderBy("created_at DESC")
+	qry = qry.PlaceholderFormat(sq.Dollar)
+	sql, params, err := qry.ToSql()
+
+	if err != nil {
+		return qs, err
+	} else {
+		err := db.Select(&qs, sql, params...)
+		dbErr := dbError(err)
+		return qs, dbErr
+	}
 }
 
 func GetQuestionById(db *sqlx.DB, id int) *Question {

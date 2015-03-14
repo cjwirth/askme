@@ -30,6 +30,7 @@ func Router(config server.Config) http.Handler {
 	router.Handle("/users/me", login.Then(GetUserMe)).Methods("GET")
 
 	// Questions
+	router.Handle("/questions", common.Then(QueryQuestions)).Methods("GET")
 	router.Handle("/questions/{id:[0-9]+}", common.Then(GetQuestion)).Methods("GET")
 	router.Handle("/questions", login.Then(CreateQuestion)).Methods("POST")
 
