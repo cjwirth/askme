@@ -8,10 +8,33 @@ import (
 )
 
 var (
+	ErrValidationError = errors.New("Validation Error")
 	ErrDuplicateObject = errors.New("Duplicate object")
+	ErrNotFound        = errors.New("Not Found")
 
 	ErrUnknown = errors.New("Unknown database error")
 )
+
+type ValidationError struct {
+	Reasons []error
+}
+
+func NewValidationError() *ValidationError {
+	return &ValidationError{Reasons: []error{}}
+}
+
+func (e ValidationError) Error() string {
+	str := "Validation Error: ("
+	for _, err := range e.Reasons {
+		str += err.Error()
+	}
+	str += ")"
+	return str
+}
+
+func (e *ValidationError) AddReason(r string) {
+	e.Reasons = append(e.Reasons, errors.New(r))
+}
 
 // dbError returns an error based on the error passed in
 // It effectually converts a database error to a more friendly model error

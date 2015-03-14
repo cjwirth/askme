@@ -1,8 +1,7 @@
 package models
 
 import (
-	"errors"
-	"fmt"
+	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -16,36 +15,33 @@ type User struct {
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 }
 
-func GetUserById(db *sqlx.DB, id string) (*User, []error) {
-	errs := []error{}
-	user, err := getUserById(db, id)
-	if err != nil {
-		errs = append(errs, err)
-	}
-	return user, errs
+func GetUserById(db *sqlx.DB, id string) *User {
+	user, _ := getUserById(db, id)
+	return user
 }
 
 // InsertUser inserts a user into the database.
 // Returns errors that occur -- validation and data errors
-func InsertUser(db *sqlx.DB, name string, email string, password string) (*User, []error) {
+func InsertUser(db *sqlx.DB, name string, email string, password string) (*User, error) {
 	u := User{}
 	u.Name = name
 	u.Email = email
 	u.PasswordHash = password
 
-	errors := validateUser(u)
-	if len(errors) > 0 {
-		return nil, errors
+	hashed, vErr := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if vErr != nil {
+		err := NewValidationError()
+		err.AddReason("Password has bad format")
+		return nil, err
 	}
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		return nil, []error{err}
+	if err := ValidateUser(u); err != nil {
+		return nil, err
 	}
 
 	user, err := insertUser(db, name, email, string(hashed))
 	if err != nil {
-		return user, []error{err}
+		return user, err
 	} else {
 		return user, nil
 	}
@@ -55,19 +51,23 @@ func InsertUser(db *sqlx.DB, name string, email string, password string) (*User,
 // Validation
 //
 
-func validateUser(u User) []error {
-	err := []error{}
+func ValidateUser(u User) error {
+	err := NewValidationError()
 	if len(u.Name) == 0 {
-		err = append(err, errors.New("Name must not be empty"))
+		err.AddReason("Name must not be empty.")
 	}
 	if len(u.Email) == 0 {
-		err = append(err, errors.New("Email must not be empty"))
+		err.AddReason("Email must not be empty")
 	}
 	if len(u.PasswordHash) == 0 {
-		err = append(err, errors.New("Password must not be empty"))
+		err.AddReason("Password must not be empty")
 	}
 
-	return err
+	if len(err.Reasons) > 0 {
+		return err
+	} else {
+		return nil
+	}
 }
 
 //
@@ -77,8 +77,8 @@ func validateUser(u User) []error {
 func getUserById(db *sqlx.DB, id string) (*User, error) {
 	user := &User{}
 	err := db.QueryRowx("SELECT * FROM users WHERE id = $1", id).StructScan(user)
-	if err != nil {
-		fmt.Println(err.Error())
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
 	}
 	return user, dbError(err)
 }

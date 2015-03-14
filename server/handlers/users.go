@@ -18,12 +18,11 @@ type UserParam struct {
 func GetUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
 	userId := c.PathParams["id"]
 
-	user, errs := models.GetUserById(c.DB.DB, userId)
-
-	if len(errs) > 0 {
-		c.Render.Error(w, http.StatusBadRequest, errs...)
+	user := models.GetUserById(c.DB.DB, userId)
+	if user != nil {
+		c.Render.ResultOK(w, user)
 	} else {
-		c.Render.Result(w, http.StatusOK, user)
+		c.Render.NotFound(w)
 	}
 }
 
@@ -33,15 +32,11 @@ func GetUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
 func CreateUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
 	var u UserParam
 	if err := c.Decoder.Decode(&u); err != nil {
-		c.Render.Error(w, http.StatusBadRequest, errors.New("Could not decode input"))
+		c.Render.BadRequest(w, errors.New("Could not decode inputn"))
 		return
 	}
 
-	user, errs := models.InsertUser(c.DB.DB, u.Name, u.Email, u.Password)
+	user, err := models.InsertUser(c.DB.DB, u.Name, u.Email, u.Password)
 
-	if len(errs) > 0 {
-		c.Render.Error(w, http.StatusBadRequest, errs...)
-	} else {
-		c.Render.Result(w, http.StatusOK, user)
-	}
+	c.Render.Result(w, user, err)
 }
