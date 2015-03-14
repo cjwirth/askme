@@ -57,10 +57,12 @@ type Renderer interface {
 }
 
 // Default renderer type
-type jsonRenderer struct{}
+type jsonRenderer struct {
+	prettyPrint bool
+}
 
-func DefaultRenderer() Renderer {
-	return jsonRenderer{}
+func DefaultRenderer(c Config) Renderer {
+	return jsonRenderer{prettyPrint: c.JSONPrettyPrint}
 }
 
 func (r jsonRenderer) ResultOK(w http.ResponseWriter, payload interface{}) {
@@ -101,8 +103,14 @@ func (r jsonRenderer) Write(w http.ResponseWriter, status int, payload interface
 		obj.Body = payload
 	}
 
-	bytes, err := json.Marshal(obj)
-	if err != nil {
+	var bytes []byte
+	var encErr error
+	if r.prettyPrint {
+		bytes, encErr = json.MarshalIndent(obj, "", "\t")
+	} else {
+		bytes, encErr = json.Marshal(obj)
+	}
+	if encErr != nil {
 		renderServerError(w)
 	} else {
 		w.WriteHeader(status)

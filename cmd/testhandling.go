@@ -14,8 +14,9 @@ import (
 
 func main() {
 	config := server.Config{
-		DBDriver:     "postgres",
-		DBDataSource: "user=askme dbname=askme_dev",
+		DBDriver:        "postgres",
+		DBDataSource:    "user=askme dbname=askme_dev",
+		JSONPrettyPrint: true,
 	}
 	r := handlers.Router(config)
 	fmt.Println(http.ListenAndServe(":8000", r))

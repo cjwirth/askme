@@ -20,7 +20,7 @@ func NewContext(config Config) *Context {
 
 	// Database
 	c.DB = NewDatabase(config.DBDriver, config.DBDataSource)
-	c.Render = DefaultRenderer()
+	c.Render = DefaultRenderer(config)
 
 	return c
 }
