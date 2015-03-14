@@ -22,11 +22,6 @@ type result struct {
 
 type Renderer interface {
 
-	// Result attemps to write a successful request with the given body
-	// or if an error exists, will write that instead
-	// TODO: rethink if this is a good idea or not
-	Result(w http.ResponseWriter, result interface{}, err error)
-
 	// ResultOK sends a successfull call with some payback to the http response
 	ResultOK(w http.ResponseWriter, result interface{})
 
@@ -66,16 +61,6 @@ type jsonRenderer struct{}
 
 func DefaultRenderer() Renderer {
 	return jsonRenderer{}
-}
-
-func (r jsonRenderer) Result(w http.ResponseWriter, result interface{}, err error) {
-	if result != nil {
-		r.ResultOK(w, result)
-	} else if err != nil {
-		r.BadRequest(w, err)
-	} else {
-		r.UnknownServerError(w)
-	}
 }
 
 func (r jsonRenderer) ResultOK(w http.ResponseWriter, payload interface{}) {

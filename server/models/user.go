@@ -40,11 +40,8 @@ func InsertUser(db *sqlx.DB, name string, email string, password string) (*User,
 	}
 
 	user, err := insertUser(db, name, email, string(hashed))
-	if err != nil {
-		return user, err
-	} else {
-		return user, nil
-	}
+	return user, err
+
 }
 
 //
@@ -86,5 +83,9 @@ func getUserById(db *sqlx.DB, id string) (*User, error) {
 func insertUser(db *sqlx.DB, name string, email string, password string) (*User, error) {
 	user := &User{}
 	err := db.QueryRowx("INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *", name, email, password).StructScan(user)
-	return user, dbError(err)
+	if dbErr := dbError(err); dbErr != nil {
+		return nil, dbErr
+	} else {
+		return user, nil
+	}
 }

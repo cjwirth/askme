@@ -37,6 +37,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request, c *server.Context) {
 	}
 
 	user, err := models.InsertUser(c.DB.DB, u.Name, u.Email, u.Password)
-
-	c.Render.Result(w, user, err)
+	if err != nil {
+		c.Render.BadRequest(w, err)
+	} else {
+		c.Render.ResultOK(w, user)
+	}
 }
