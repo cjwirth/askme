@@ -34,6 +34,9 @@ func Router(config server.Config) http.Handler {
 	router.Handle("/questions/{id:[0-9]+}", common.Then(GetQuestion)).Methods("GET")
 	router.Handle("/questions", login.Then(CreateQuestion)).Methods("POST")
 
+	router.Handle("/answers", common.Then(QueryAnswers)).Methods("GET")
+	router.Handle("/answers", login.Then(CreateAnswer)).Methods("POST")
+
 	// Login
 	router.Handle("/login", common.Then(Login)).Methods("POST")
 	router.Handle("/logout", common.Then(Logout)).Methods("POST")
