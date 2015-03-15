@@ -10,8 +10,6 @@ import (
 	"askme/server/handlers"
 )
 
-// Here begin tests
-
 func main() {
 	config := server.Config{
 		DBDriver:        "postgres",
