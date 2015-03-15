@@ -13,7 +13,7 @@ import (
 func main() {
 	config := server.Config{
 		DBDriver:        "postgres",
-		DBDataSource:    "user=askme dbname=askme_dev",
+		DBDataSource:    "user=askme dbname=askme",
 		JSONPrettyPrint: true,
 	}
 	r := handlers.Router(config)
