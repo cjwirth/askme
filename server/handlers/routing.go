@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,9 +20,6 @@ func Router(config server.Config) http.Handler {
 	// Router for handlers requiring login
 	login := common.Branch(RequireLogin)
 
-	// Set up routing
-	router.Handle("/", common.Then(Root))
-
 	// Users
 	router.Handle("/users", common.Then(CreateUser)).Methods("POST")
 	router.Handle("/users/{id:[0-9]+}", common.Then(GetUser)).Methods("GET")
@@ -41,12 +37,11 @@ func Router(config server.Config) http.Handler {
 	router.Handle("/login", common.Then(Login)).Methods("POST")
 	router.Handle("/logout", common.Then(Logout)).Methods("POST")
 
+	router.NotFoundHandler = common.Then(NotFound)
+
 	return router
 }
 
-func Root(w http.ResponseWriter, r *http.Request, c *server.Context) {
-
-	fmt.Println("Root Handler")
-	w.WriteHeader(200)
-	fmt.Fprint(w, "Root")
+func NotFound(w http.ResponseWriter, r *http.Request, c *server.Context) {
+	c.Render.NotFound(w)
 }
